@@ -7,56 +7,58 @@
 
 #include <Boardled.h>
 
-Board_led::Board_led() {
-
-	blink	= false;
-}
-
 Board_led::~Board_led() {
 	// TODO Auto-generated destructor stub
 }
 
-Board_led::Board_led(GPIO_Type *b, uint32_t m){
+Board_led::Board_led(const led_base *b,const led_mask m) : base(b), mask(m){
 
-	base 	= b;
-	mask 	= m;
 	blink	= false;
 	state 	= LED_OFF;
+	period 	= 0;
 
-	GPIO_PortSet(base, mask);
+	GPIO_PortSet((GPIO_Type*)base, mask);
 }
 
-Board_led::Board_led(GPIO_Type *b, uint32_t m, uint32_t p){
+Board_led::Board_led(const led_base *b,const led_mask m, uint32_t p) : base(b), mask(m){
 
-	base 	= b;
-	mask 	= m;
+	blink	= false;
 	period 	= p;
-	blink	= false;
 	state 	= LED_OFF;
 
-	GPIO_PortSet(base, mask);
+	GPIO_PortSet((GPIO_Type*)base, mask);
 }
 
-Board_led::Board_led(GPIO_Type *b, uint32_t m, uint32_t p, bool blk){
+Board_led::Board_led(const led_base *b,const led_mask m, uint32_t p, bool blk) : base(b), mask(m){
 
-	base 	= b;
-	mask 	= m;
 	period 	= p;
 	blink	= blk;
 	state 	= LED_OFF;
 
-	GPIO_PortSet(base, mask);
+	GPIO_PortSet((GPIO_Type*)base, mask);
 }
 
-void Board_led::led_toggle(void) {
+void Board_led::led_toggle() {
 
-	GPIO_PortToggle(base, mask);
+	GPIO_PortToggle((GPIO_Type*)base, mask);
 	state = !state;
 }
 
-bool Board_led::led_state_get(void){
+bool Board_led::led_state_get() const{
 
 	return state;
+}
+
+void Board_led::led_state_set(bool st) {
+
+	state = st;
+	if(state == LED_ON){
+
+		GPIO_PortClear((GPIO_Type*)base, mask);
+	}else{
+
+		GPIO_PortSet((GPIO_Type*)base, (uint32_t)mask);
+	}
 }
 
 void Board_led::led_period_set(uint32_t p){
@@ -64,43 +66,53 @@ void Board_led::led_period_set(uint32_t p){
 	period = p;
 }
 
-uint32_t Board_led::led_period_get(void){
+uint32_t Board_led::led_period_get() const{
 
 	return period;
 }
 
-void Board_led::led_state_set(bool st){
+void Board_led::led_blink_start(){
 
-	state = st;
-	if(state == LED_ON){
+	if(period != 0){
 
-		GPIO_PortClear(base, mask);
-	}else{
-
-		GPIO_PortSet(base, mask);
+		count = period;
+		blink = true;
 	}
 }
 
-void Board_led::led_blink_start(void){
-
-	count = period;
-	blink = true;
-}
-
-void Board_led::led_blink_stop(void){
+void Board_led::led_blink_stop() {
 
 	blink = false;
+
+	led_state_set(LED_OFF);
 }
 
-void Board_led::led_tick_callback(void){
+void Board_led::led_blink_toggle(){
+
+	if(blink){
+
+		led_blink_stop();
+	}else{
+
+		led_blink_start();
+	}
+}
+
+void Board_led::led_tick_handler(){
 
 	if(blink){
 
 		count--;
 		if(count == 0){
 
-			this->led_toggle();
-			count = period;
+			led_toggle();
+			if(period != 0){
+
+				count = period;
+			}else{
+
+				led_blink_stop();
+			}
 		}
 	}
 }
