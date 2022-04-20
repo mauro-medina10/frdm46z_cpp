@@ -14,16 +14,19 @@
 /* cpp includes */
 #include <iostream>
 #include <string>
+#include <array>
 #include "Boardled.h"
 /* Includes */
 #include "sys_delay.h"
 #include <fsl_lpsci.h>
 
+using namespace std;
 /*******************************************************************************
  * Defines
  ******************************************************************************/
 //#define BOARD_INIT_DEBUG_CONSOLE_PERIPHERAL
 //#define UART_NON_BLOQ
+#define UART_ARRAY
 #define UART_MAX_BUFF 30
 
 #ifdef UART_NON_BLOQ
@@ -41,10 +44,17 @@ static uint32_t period = 1000;
 Board_led red_led(BOARD_LED_RED_GPIO, BOARD_LED_RED_GPIO_PIN_MASK, period);
 Board_led green_led(BOARD_LED_GREEN_GPIO, BOARD_LED_GREEN_GPIO_PIN_MASK);
 
-static const uint8_t period_menu[] = {'E','n','t','e','r',' ','p','e','r','i','o','d',':',' ','\0','\0'};
+#ifdef UART_ARRAY
+static constexpr array<uint8_t, 16> period_menu{
+	'E','n','t','e','r',' ','p','e','r','i','o','d',':',' ','\0','\0'
+};
+#else
+static constexpr uint8_t period_menu[] = {'E','n','t','e','r',' ','p','e','r','i','o','d',':',' ','\0','\0'};
+#endif
 /*******************************************************************************
  * Code
  ******************************************************************************/
+
 #ifdef __cplusplus
 extern "C"{
 #endif
@@ -70,7 +80,7 @@ static void led_menu_write(void){
 							"4- Red led blink toggle\n\r",
 							"5- Red led blink period set\n\r",
 							"6- Green led ON\n\r",
-							"7- Green led OFF",
+							"7- Green led OFF\n\r",
 							"8- Green led toggle\n\r",
 							"9- Green blink toggle\n\r",
 							"a- Green led blink period set\n\r");
@@ -86,8 +96,14 @@ int main(void) {
 	uint8_t 	period_data[] = {'0','0','0','0','\n','\r','\0'};
 	std::string period_aux;
 
+	static_assert(UART_MAX_BUFF > 0, "UART buffer length invalid.");
+
 	lpsci_transfer_t 	menu_info = {&menu_select, 1};
+#ifdef UART_ARRAY
+	lpsci_transfer_t 	period_info = {(uint8_t*)&period_menu, period_menu.size()};
+#else
 	lpsci_transfer_t 	period_info = {(uint8_t*)period_menu, sizeof(period_menu)};
+#endif
 	lpsci_handle_t 		uart_hand;
 
 	LPSCI_TransferCreateHandle(UART0, &uart_hand, NULL, NULL);
@@ -124,7 +140,7 @@ int main(void) {
 
 		menu_select -= 48;
 
-		if(menu_select == 17 || menu_select == 49)menu_select = 10;
+		if(menu_select == 17 || menu_select == 49) menu_select = 10;
 
 		switch(menu_select){
 
@@ -164,15 +180,18 @@ int main(void) {
 
 			period_aux = (char*)period_data;
 
-			std::cout << period_aux << std::endl; //DEBUG
+			cout << period_aux << endl; //DEBUG
 
 			ret = (uint32_t)stoi(period_aux);
 
 			red_led.led_period_set(ret);
-
+#ifdef UART_ARRAY
+			period_info.data = (uint8_t*) &period_menu;
+			period_info.dataSize = period_menu.size();
+#else
 			period_info.data = (uint8_t*) period_menu;
 			period_info.dataSize = sizeof(period_menu);
-
+#endif
 			break;
 
 		case 6:
@@ -211,15 +230,19 @@ int main(void) {
 
 			period_aux = (char*)period_data;
 
-			std::cout << period_aux << std::endl; //DEBUG
+			cout << period_aux << endl; //DEBUG
 
 			ret = (uint32_t)stoi(period_aux);
 
 			green_led.led_period_set(ret);
 
+#ifdef UART_ARRAY
+			period_info.data = (uint8_t*) &period_menu;
+			period_info.dataSize = period_menu.size();
+#else
 			period_info.data = (uint8_t*) period_menu;
 			period_info.dataSize = sizeof(period_menu);
-
+#endif
 			break;
 		}
 

@@ -10,6 +10,8 @@
 
 #include <fsl_gpio.h>
 
+using namespace std;
+
 enum led_state{
 	LED_OFF = false,
 	LED_ON 	= true,

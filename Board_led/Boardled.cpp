@@ -7,6 +7,8 @@
 
 #include <Boardled.h>
 
+using namespace std;
+
 Board_led::~Board_led() {
 	// TODO Auto-generated destructor stub
 }
@@ -100,19 +102,14 @@ void Board_led::led_blink_toggle(){
 
 void Board_led::led_tick_handler(){
 
-	if(blink){
+	if(blink && period != 0){
 
 		count--;
 		if(count == 0){
 
 			led_toggle();
-			if(period != 0){
 
-				count = period;
-			}else{
-
-				led_blink_stop();
-			}
+			count = period;
 		}
 	}
 }

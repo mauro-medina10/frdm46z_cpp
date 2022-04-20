@@ -10,6 +10,8 @@
 
 Board_sw::Board_sw(const sw_base *b, const sw_mask m) : base(b), mask(m) {
 
+	GPIO_PortClearInterruptFlags((GPIO_Type *) base, (uint32_t) mask);
+
 	events = 0;
 
     NVIC_EnableIRQ(PORTC_PORTD_IRQn);
