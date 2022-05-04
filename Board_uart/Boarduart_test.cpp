@@ -100,7 +100,18 @@ int main(void) {
 
     	uart_0.uart_data_get(uart_buff, 5);
 
-    	SysTick_DelayTicks(3000);
+    	while(!uart_0.uart_data_ready()){
+
+    		SysTick_DelayTicks(300);
+    	}
+
+    	uart_0.uart_data_send(uart_buff, 5);
+    	SysTick_DelayTicks(50);
+    	uart_buff[0] = '\n';
+    	uart_buff[1] = '\r';
+    	uart_0.uart_data_send(uart_buff, 2);
+
+    	SysTick_DelayTicks(1000);
     }
     return 0 ;
 }
