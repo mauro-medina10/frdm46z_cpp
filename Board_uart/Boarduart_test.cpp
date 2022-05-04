@@ -100,15 +100,19 @@ int main(void) {
 
     	uart_0.uart_data_get(uart_buff, 5);
 
-    	while(!uart_0.uart_data_ready()){
+    	while(!uart_0.uart_recv_ready()){
 
     		SysTick_DelayTicks(300);
     	}
 
     	uart_0.uart_data_send(uart_buff, 5);
-    	SysTick_DelayTicks(50);
     	uart_buff[0] = '\n';
     	uart_buff[1] = '\r';
+
+    	while(!uart_0.uart_send_ready()){
+
+    		SysTick_DelayTicks(10);
+    	}
     	uart_0.uart_data_send(uart_buff, 2);
 
     	SysTick_DelayTicks(1000);

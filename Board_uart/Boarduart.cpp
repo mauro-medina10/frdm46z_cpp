@@ -21,7 +21,8 @@ Board_uart::Board_uart(UART0_Type* b) : base(b) {
 	handle.callback = reinterpret_cast<lpsci_transfer_callback_t>(uart_data_callback);
 	handle.userData = reinterpret_cast<void*>(this);
 
-	data_flag = false;
+	data_recv_done = false;
+	data_send_done = false;
 }
 
 //Methods
@@ -31,11 +32,11 @@ void Board_uart::uart_data_get(uint8_t* data, size_t size){
 
 	xfer.dataSize 	= size;
 
-	data_flag = false;
+	data_recv_done = false;
 
 	LPSCI_TransferReceiveNonBlocking(base, &handle, &xfer, &receivedBytes);
 
-	if(receivedBytes >= size) data_flag = true;
+	if(receivedBytes >= size) data_recv_done = true;
 }
 
 void Board_uart::uart_data_send(uint8_t* data, size_t size){
@@ -44,25 +45,46 @@ void Board_uart::uart_data_send(uint8_t* data, size_t size){
 
 	xfer.dataSize 	= size;
 
+	data_send_done = false;
+
 	LPSCI_TransferSendNonBlocking(base, &handle, &xfer);
 }
 
-bool Board_uart::uart_data_ready() const{
+bool Board_uart::uart_recv_ready() const{
 
-	return data_flag;
+	return data_recv_done;
 }
 
-void Board_uart::uart_set_data_flag(){
+bool Board_uart::uart_send_ready() const{
 
-	data_flag = true;
+	return data_send_done;
+}
+
+void Board_uart::uart_set_recv_flag(){
+
+	data_recv_done = true;
+}
+
+void Board_uart::uart_set_send_flag(){
+
+	data_send_done = true;
 }
 
 void uart_data_callback(UART0_Type *base, lpsci_handle_t *handle, status_t status, void *userData){
 
-	if(status == kStatus_LPSCI_RxIdle){
+	switch(status){
 
-		//data_flag = true;
-		reinterpret_cast<Board_uart*>(userData)->uart_set_data_flag();
+		case kStatus_LPSCI_RxIdle:
+
+			reinterpret_cast<Board_uart*>(userData)->uart_set_recv_flag();
+			break;
+		case kStatus_LPSCI_TxIdle:
+
+			reinterpret_cast<Board_uart*>(userData)->uart_set_send_flag();
+			break;
+
+		default:
+			break;
 	}
 }
 
