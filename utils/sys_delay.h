@@ -14,6 +14,10 @@ extern "C"{
 
 #include <stdio.h>
 
+#ifndef __weak
+#define __weak	__attribute__((weak))
+#endif
+
 void UserTick_Handler(void);
 
 void SysTick_DelayTicks(uint32_t n);
