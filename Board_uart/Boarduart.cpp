@@ -7,6 +7,7 @@
 
 #include <Board_uart/Boarduart.h>
 #include <fsl_lpsci.h>
+#include "sys_delay.h"
 
 void uart_data_callback(UART0_Type *base, lpsci_handle_t *handle, status_t status, void *userData);
 
@@ -20,6 +21,19 @@ Board_uart::Board_uart(UART0_Type* b) : base(b) {
 
 	handle.callback = reinterpret_cast<lpsci_transfer_callback_t>(uart_data_callback);
 	handle.userData = reinterpret_cast<void*>(this);
+
+	data_recv_done = false;
+	data_send_done = false;
+}
+
+Board_uart::Board_uart(UART0_Type* b, lpsci_transfer_callback_t cb) : base(b){
+
+	LPSCI_TransferCreateHandle(base, &handle, NULL, NULL);
+
+	handle.rxRingBuffer 	= ring_buff;
+	handle.rxRingBufferSize = buffer_size;
+
+	handle.callback = cb;
 
 	data_recv_done = false;
 	data_send_done = false;

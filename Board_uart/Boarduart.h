@@ -14,6 +14,7 @@ class Board_uart {
 public:
 	//Ctor
 	Board_uart(UART0_Type* b);
+	Board_uart(UART0_Type* b, lpsci_transfer_callback_t cb);
 	//Dtor
 	virtual ~Board_uart();
 	//Methods

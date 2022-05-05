@@ -41,15 +41,26 @@ using namespace std;
 #define UART_DATA_SET(d, ...) d.dataSize = sprintf((char*)d.data, __VA_ARGS__)
 
 /*******************************************************************************
+ * Static functions
+ ******************************************************************************/
+#ifdef UART_CUSTOM_CB
+static void uart_callback(UART0_Type *base, lpsci_handle_t *handle, status_t status, void *userData);
+#endif
+/*******************************************************************************
  * Variables
  ******************************************************************************/
+#ifdef UART_CUSTOM_CB
+Board_uart uart_0(UART0, uart_callback);
+#else
 Board_uart uart_0(UART0);
-
-
+#endif
 static constexpr array<uint8_t, 16> uart_data_test{
 	'U','A','R','T',' ','T','e','s','t','\n','\r','\0','\0'
 };
 static constexpr size_t uart_buff_size = 30;
+#ifdef UART_CUSTOM_CB
+static bool uart_flag = false;
+#endif
 /*******************************************************************************
  * Code
  ******************************************************************************/
@@ -69,6 +80,12 @@ void PORTC_PORTD_IRQHandler(void){
 }
 #endif
 
+#ifdef UART_CUSTOM_CB
+static void uart_callback(UART0_Type *base, lpsci_handle_t *handle, status_t status, void *userData){
+
+	uart_flag = true;
+}
+#endif
 /*
  * @brief   Application entry point.
  */
