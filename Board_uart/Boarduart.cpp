@@ -60,14 +60,14 @@ bool Board_uart::uart_send_ready() const{
 	return data_send_done;
 }
 
-void Board_uart::uart_set_recv_flag(){
+void Board_uart::uart_recv_check_bloq() const{
 
-	data_recv_done = true;
+	while(!data_recv_done);
 }
 
-void Board_uart::uart_set_send_flag(){
+void Board_uart::uart_send_check_bloq() const{
 
-	data_send_done = true;
+	while(!data_send_done);
 }
 
 void uart_data_callback(UART0_Type *base, lpsci_handle_t *handle, status_t status, void *userData){
@@ -76,11 +76,11 @@ void uart_data_callback(UART0_Type *base, lpsci_handle_t *handle, status_t statu
 
 		case kStatus_LPSCI_RxIdle:
 
-			reinterpret_cast<Board_uart*>(userData)->uart_set_recv_flag();
+			reinterpret_cast<Board_uart*>(userData)->data_recv_done = true;
 			break;
 		case kStatus_LPSCI_TxIdle:
 
-			reinterpret_cast<Board_uart*>(userData)->uart_set_send_flag();
+			reinterpret_cast<Board_uart*>(userData)->data_send_done = true;
 			break;
 
 		default:

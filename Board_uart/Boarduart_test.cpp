@@ -97,6 +97,7 @@ int main(void) {
     while(1) {
 
     	uart_0.uart_data_send((uint8_t*)&uart_data_test, uart_data_test.size());
+    	uart_0.uart_send_check_bloq();
 
     	uart_0.uart_data_get(uart_buff, 5);
 
@@ -106,16 +107,13 @@ int main(void) {
     	}
 
     	uart_0.uart_data_send(uart_buff, 5);
+    	uart_0.uart_send_check_bloq();
+
     	uart_buff[0] = '\n';
     	uart_buff[1] = '\r';
-
-    	while(!uart_0.uart_send_ready()){
-
-    		SysTick_DelayTicks(10);
-    	}
     	uart_0.uart_data_send(uart_buff, 2);
 
-    	SysTick_DelayTicks(1000);
+    	SysTick_DelayTicks(5000);
     }
     return 0 ;
 }

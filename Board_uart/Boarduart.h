@@ -19,8 +19,13 @@ public:
 	//Methods
 	void uart_data_get(uint8_t* data, size_t size);
 	void uart_data_send(uint8_t* data, size_t size);
+
 	bool uart_recv_ready() const;
 	bool uart_send_ready() const;
+
+	void uart_recv_check_bloq() const;
+	void uart_send_check_bloq() const;
+
 private:
 	//non-copy
 	Board_uart(const Board_uart&) = delete;
@@ -35,8 +40,6 @@ private:
 	bool 				data_recv_done;
 	bool 				data_send_done;
 	uint8_t 			ring_buff[buffer_size];
-	void uart_set_recv_flag();
-	void uart_set_send_flag();
 
 	friend
 	void uart_data_callback(UART0_Type *base, lpsci_handle_t *handle, status_t status, void *userData);
