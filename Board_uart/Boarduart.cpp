@@ -6,11 +6,24 @@
  */
 
 #include <Board_uart/Boarduart.h>
-#include <fsl_lpsci.h>
-#include "sys_delay.h"
 
 void uart_data_callback(UART0_Type *base, lpsci_handle_t *handle, status_t status, void *userData);
 
+static void uart_format_cb(char *buf, int32_t *indicator, char val, int len){
+
+	int i = 0;
+
+	for (i = 0; i < len; i++)
+	{
+        if ((*indicator + 1) >= MAX_BUFF_SIZE)
+        {
+            *indicator = 0U;
+        }
+
+		buf[*indicator] = val;
+		(*indicator)++;
+	}
+}
 //C-tor
 Board_uart::Board_uart(UART0_Type* b) : base(b) {
 
@@ -64,6 +77,20 @@ void Board_uart::uart_data_send(uint8_t* data, size_t size){
 	LPSCI_TransferSendNonBlocking(base, &handle, &xfer);
 }
 
+void Board_uart::uart_write(const char *_s, ...){
+
+    va_list ap;
+    size_t logLength = 0U;
+
+    va_start(ap, _s);
+    /* format print log first */
+    logLength = (size_t) StrFormatPrintf(_s, ap, reinterpret_cast<char*>(write_buff), uart_format_cb);
+    /* print log */
+    uart_data_send(write_buff, logLength);
+
+    va_end(ap);
+}
+
 bool Board_uart::uart_recv_ready() const{
 
 	return data_recv_done;
@@ -106,4 +133,3 @@ void uart_data_callback(UART0_Type *base, lpsci_handle_t *handle, status_t statu
 Board_uart::~Board_uart() {
 	// TODO Auto-generated destructor stub
 }
-

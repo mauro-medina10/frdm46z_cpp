@@ -31,15 +31,7 @@ using namespace std;
 //#define UART_NON_BLOQ
 #define UART_MAX_BUFF 30
 
-#ifdef UART_NON_BLOQ
-#define UART_WRITE(d) 	LPSCI_TransferSendNonBlocking(UART0, &uart_hand, &d)
-#define UART_READ(d) 	LPSCI_TransferReceiveNonBlocking(UART0, d.data, d.dataSize)
-#else
-#define UART_WRITE(d) 	LPSCI_WriteBlocking(UART0, d.data, d.dataSize)
-#define UART_READ(d) 	LPSCI_ReadBlocking(UART0, d.data, d.dataSize)
-#endif
-#define UART_DATA_SET(d, ...) d.dataSize = sprintf((char*)d.data, __VA_ARGS__)
-
+#define UART_RECEIVE_DATA_TEST 5
 /*******************************************************************************
  * Static functions
  ******************************************************************************/
@@ -92,6 +84,7 @@ static void uart_callback(UART0_Type *base, lpsci_handle_t *handle, status_t sta
 int main(void) {
 
 	uint8_t uart_buff[uart_buff_size];
+	uint8_t idx = 0;
 
     /* Init board hardware. */
     BOARD_InitBootPins();
@@ -112,23 +105,27 @@ int main(void) {
 
     /* Enter an infinite loop, just incrementing a counter. */
     while(1) {
-
+    	//Sends uart_data_test string and waits until finished
     	uart_0.uart_data_send((uint8_t*)&uart_data_test, uart_data_test.size());
     	uart_0.uart_send_check_bloq();
-
-    	uart_0.uart_data_get(uart_buff, 5);
-
+    	//Receives UART_RECEIVE_DATA_TEST characters
+    	uart_0.uart_data_get(uart_buff, UART_RECEIVE_DATA_TEST);
+    	//Polling for data recieved ready
     	while(!uart_0.uart_recv_ready()){
 
     		SysTick_DelayTicks(300);
     	}
-
-    	uart_0.uart_data_send(uart_buff, 5);
+    	//Echo
+    	uart_0.uart_data_send(uart_buff, UART_RECEIVE_DATA_TEST);
     	uart_0.uart_send_check_bloq();
 
     	uart_buff[0] = '\n';
     	uart_buff[1] = '\r';
     	uart_0.uart_data_send(uart_buff, 2);
+    	uart_0.uart_send_check_bloq();
+    	//Send formated string
+    	uart_0.uart_write("PRUEBA WRITE %d \n\r", idx);
+    	idx++;
 
     	SysTick_DelayTicks(5000);
     }

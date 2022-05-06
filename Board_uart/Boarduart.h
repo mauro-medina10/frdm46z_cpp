@@ -9,6 +9,12 @@
 #define BOARD_UART_BOARDUART_H_
 
 #include <fsl_lpsci.h>
+#include <fsl_lpsci.h>
+#include "sys_delay.h"
+#include <stdarg.h>
+#include "fsl_str.h"
+
+#define MAX_BUFF_SIZE 30
 
 class Board_uart {
 public:
@@ -18,11 +24,13 @@ public:
 	//Dtor
 	virtual ~Board_uart();
 	//Methods
-	void uart_data_get(uint8_t* data, size_t size);
-	void uart_data_send(uint8_t* data, size_t size);
+	void uart_data_get(uint8_t* data, size_t size); //Get data from uart
+	void uart_data_send(uint8_t* data, size_t size); //Send data through uart
 
-	bool uart_recv_ready() const;
-	bool uart_send_ready() const;
+	void uart_write(const char *_s, ...); //Write formated string
+
+	bool uart_recv_ready() const; //Check if data has been received
+	bool uart_send_ready() const; //Check is data has been send
 
 	void uart_recv_check_bloq() const;
 	void uart_send_check_bloq() const;
@@ -41,9 +49,9 @@ private:
 	bool 				data_recv_done;
 	bool 				data_send_done;
 	uint8_t 			ring_buff[buffer_size];
+	uint8_t				write_buff[buffer_size];
 
 	friend
 	void uart_data_callback(UART0_Type *base, lpsci_handle_t *handle, status_t status, void *userData);
 };
-
 #endif /* BOARD_UART_BOARDUART_H_ */
